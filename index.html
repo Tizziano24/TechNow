@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TechNow</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+  <style id="app-style">
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --light: #f3f4f6;
+      --dark: #1f2937;
+    }
+    
+    body {
+      background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .navbar {
+      background-color: #2f2f2f !important;  /* Changed from #121212 to #2f2f2f */
+    }
+    
+    .navbar-brand, .navbar .btn-outline-dark {
+      color: white !important;  /* Kept as is for contrast */
+    }
+    
+    .navbar .btn-outline-dark {
+      border-color: white !important;  /* Kept as is for visibility */
+    }
+    
+    .navbar .btn-outline-dark:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+    
+    .kanban-column {
+      min-height: 500px;
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .kanban-column-header {
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .badge-pending {
+      background-color: var(--warning);
+      color: white;
+    }
+    
+    .badge-in-progress {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .badge-completed {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .status-selector {
+      cursor: pointer;
+      background-color: #121212;
+      color: white;
+    }
+    
+    .status-selector:hover {
+      background-color: #2a2a2a;
+      color: white;
+    }
+    
+    .order-card {
+      margin-bottom: 15px;
+    }
+    
+    .order-card .card-body {
+      padding: 15px;
+    }
+    
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .preview-container {
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .loading-spinner {
+      display: none;
+      margin-left: 5px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--secondary);
+    }
+    
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+      .kanban-container {
+        flex-direction: column;
+      }
+      
+      .kanban-column {
+        margin-bottom: 20px;
+        min-height: auto;
+      }
+    }
+    
+    .order-detail-image {
+      max-width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    
+    .animated-bg {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        background-color: rgba(237, 242, 247, 0.7);
+      }
+      50% {
+        background-color: rgba(237, 242, 247, 0.4);
+      }
+      100% {
+        background-color: rgba(237, 242, 247, 0.7);
+      }
+    }
+    
+    .notification-drop {
+      position: fixed;
+      left: 50%;
+      top: -100px;
+      transform: translateX(-50%);
+      background-color: var(--success);
+      color: white;
+      border-radius: 50%;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: dropIn 0.5s forwards, fadeOut 0.5s 2.5s forwards;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .notification-drop i {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    
+    @keyframes dropIn {
+      0% { top: -100px; }
+      70% { top: 45%; }
+      85% { top: 40%; }
+      100% { top: 45%; }
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    
+    /* Estilos para el modo oscuro */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .navbar,
+    body.dark-mode .card,
+    body.dark-mode .kanban-column,
+    body.dark-mode .modal-content {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .text-muted {
+      color: #9e9e9e !important;
+    }
+    
+    body.dark-mode .modal-header,
+    body.dark-mode .modal-footer {
+      border-color: #333;
+    }
+    
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+      background-color: #2d2d2d;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    
+    /* Add new rules for light mode navbar */
+    body:not(.dark-mode) .navbar {
+      background-color: #e0e0e0 !important;
+      color: #1f2937 !important;
+    }
+    
+    body:not(.dark-mode) .navbar .navbar-brand,
+    body:not(.dark-mode) .navbar .btn-outline-dark {
+      color: #1f2937 !important;
+    }
+    
+    body:not(.dark-mode) .navbar .btn-outline-dark:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    .team-inbox {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    
+    .message-card {
+      padding: 15px;
+      border-left: 4px solid var(--primary);
+      margin-bottom: 15px;
+      background-color: rgba(37, 99, 235, 0.05);
+      border-radius: 5px;
+    }
+    
+    body.dark-mode .message-card {
+      background-color: rgba(37, 99, 235, 0.15);
+      border-left: 4px solid var(--primary);
+    }
+    
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .message-time {
+      font-size: 0.8rem;
+      color: var(--secondary);
+    }
+    
+    body.dark-mode .message-time {
+      color: #9e9e9e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid py-3">
+    <div class="row mb-4">
+      <div class="col-12">
+        <nav class="navbar navbar-dark bg-dark rounded shadow-sm">
+          <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+              <i class="fas fa-tools me-2 text-primary"></i>TechNow
+            </span>
+            <div>
+              <button id="darkModeBtn" class="btn btn-outline-dark me-2">
+                <i class="fas fa-moon me-1"></i>Dark Mode
+              </button>
+              <button id="newOrderBtn" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nueva Orden
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </div>
+    
+    <div class="row kanban-container">
+      <!-- Columna de Pendientes -->
+      <div class="col-md-4 mb-4">
+        <div class="kanban-column">
+          <div class="kanban-column-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Pendientes</h5>
+            <span class="badge bg-warning" id="pending-count">0</span>
+          </div>
+          <div id="pending-orders" class="order-list">
+            <div class="empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <p>No hay órdenes pendientes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna de En Proceso -->
+      <div class="col-md-4 mb-4">
+        <div class="kanban-column">
+          <div class="kanban-column-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">En Proceso</h5>
+            <span class="badge bg-primary" id="in-progress-count">0</span>
+          </div>
+          <div id="in-progress-orders" class="order-list">
+            <div class="empty-state">
+              <i class="fas fa-cogs"></i>
+              <p>No hay órdenes en proceso</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna de Completadas -->
+      <div class="col-md-4 mb-4">
+        <div class="kanban-column">
+          <div class="kanban-column-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Completadas</h5>
+            <span class="badge bg-success" id="completed-count">0</span>
+          </div>
+          <div id="completed-orders" class="order-list">
+            <div class="empty-state">
+              <i class="fas fa-check-circle"></i>
+              <p>No hay órdenes completadas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add this after the kanban-container row, before the closing div.container-fluid -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-inbox me-2"></i>Bandeja de Entrada del Equipo</h5>
+            <span class="badge bg-primary" id="inbox-count">0</span>
+          </div>
+          <div class="card-body">
+            <div id="teamInbox" class="team-inbox">
+              <div class="empty-state">
+                <i class="fas fa-envelope-open"></i>
+                <p>No hay mensajes en la bandeja de entrada</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Nueva Orden -->
+  <div class="modal fade" id="newOrderModal" tabindex="-1" aria-labelledby="newOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newOrderModalLabel">Nueva Orden de Reparación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="newOrderForm">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="deviceType" class="form-label">Tipo de Dispositivo</label>
+                <select class="form-select" id="deviceType" required>
+                  <option value="" selected disabled>Seleccione un tipo...</option>
+                  <option value="Celular">Celular</option>
+                  <option value="Computadora">Computadora</option>
+                  <option value="Tablet">Tablet</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="dueDate" class="form-label">Fecha Estimada de Entrega</label>
+                <input type="date" class="form-control" id="dueDate" required>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="problemDescription" class="form-label">Descripción del Problema</label>
+              <textarea class="form-control" id="problemDescription" rows="3" required></textarea>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="customerName" class="form-label">Nombre del Cliente</label>
+                <input type="text" class="form-control" id="customerName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="customerEmail" class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" id="customerEmail" required>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="customerPhone" class="form-label">Teléfono</label>
+              <input type="tel" class="form-control" id="customerPhone" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="deviceImage" class="form-label">Imagen del Dispositivo</label>
+              <input type="file" class="form-control" id="deviceImage" accept="image/*">
+              <div class="preview-container">
+                <img id="imagePreview" class="image-preview" src="#" alt="Vista previa de la imagen">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="submitOrderBtn">
+            Crear Orden
+            <span class="spinner-border spinner-border-sm loading-spinner" id="submitSpinner" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Detalle de Orden -->
+  <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="orderDetailModalLabel">Detalles de la Orden</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="orderDetailContent">
+          <!-- El contenido se llenará dinámicamente -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-info" id="notifyTeamBtn">
+            <i class="fas fa-bell me-2"></i>Notificar al Equipo
+            <span class="spinner-border spinner-border-sm loading-spinner" id="notifySpinner" role="status" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="btn btn-warning" id="sendReminderBtn">
+            <i class="fas fa-paper-plane me-2"></i>Enviar Recordatorio
+            <span class="spinner-border spinner-border-sm loading-spinner" id="reminderSpinner" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
+  <script id="app-script">
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos DOM
+      const newOrderBtn = document.getElementById('newOrderBtn');
+      const newOrderModal = new bootstrap.Modal(document.getElementById('newOrderModal'));
+      const orderDetailModal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+      const newOrderForm = document.getElementById('newOrderForm');
+      const submitOrderBtn = document.getElementById('submitOrderBtn');
+      const deviceImage = document.getElementById('deviceImage');
+      const imagePreview = document.getElementById('imagePreview');
+      const pendingOrdersContainer = document.getElementById('pending-orders');
+      const inProgressOrdersContainer = document.getElementById('in-progress-orders');
+      const completedOrdersContainer = document.getElementById('completed-orders');
+      const orderDetailContent = document.getElementById('orderDetailContent');
+      const notifyTeamBtn = document.getElementById('notifyTeamBtn');
+      const sendReminderBtn = document.getElementById('sendReminderBtn');
+      const submitSpinner = document.getElementById('submitSpinner');
+      const notifySpinner = document.getElementById('notifySpinner');
+      const reminderSpinner = document.getElementById('reminderSpinner');
+      const pendingCount = document.getElementById('pending-count');
+      const inProgressCount = document.getElementById('in-progress-count');
+      const completedCount = document.getElementById('completed-count');
+      const inboxCount = document.getElementById('inbox-count');
+      
+      // Variables globales
+      let currentOrders = [];
+      window.currentOrders = currentOrders; // Add this line to make it globally accessible
+      let currentOrderId = null;
+      let currentImageBase64 = null;
+      let isAdmin = true; // Variable para controlar si el usuario es administrador
+      
+      // Cargar órdenes desde LocalStorage
+      function loadOrders() {
+        const savedOrders = localStorage.getItem('repairOrders');
+        if (savedOrders) {
+          currentOrders = JSON.parse(savedOrders);
+          window.currentOrders = currentOrders; // Add this line
+          renderOrders();
+        }
+      }
+      
+      // Guardar órdenes en LocalStorage
+      function saveOrders() {
+        localStorage.setItem('repairOrders', JSON.stringify(currentOrders));
+      }
+      
+      // Renderizar órdenes en las columnas
+      function renderOrders() {
+        const pendingOrders = currentOrders.filter(order => order.status === 'Pendiente');
+        const inProgressOrders = currentOrders.filter(order => order.status === 'En Proceso');
+        const completedOrders = currentOrders.filter(order => order.status === 'Completada');
+        
+        renderOrdersInColumn(pendingOrdersContainer, pendingOrders);
+        renderOrdersInColumn(inProgressOrdersContainer, inProgressOrders);
+        renderOrdersInColumn(completedOrdersContainer, completedOrders);
+        
+        // Actualizar contadores
+        pendingCount.textContent = pendingOrders.length;
+        inProgressCount.textContent = inProgressOrders.length;
+        completedCount.textContent = completedOrders.length;
+      }
+      
+      // Renderizar órdenes en una columna específica
+      function renderOrdersInColumn(container, orders) {
+        if (orders.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <p>No hay órdenes en esta categoría</p>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        orders.forEach(order => {
+          const card = document.createElement('div');
+          card.className = 'card order-card animate__animated animate__fadeIn';
+          card.innerHTML = `
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="card-title mb-0">${order.deviceType}</h6>
+                <span class="badge badge-${getStatusBadgeClass(order.status)}">${order.status}</span>
+              </div>
+              <div class="dropdown mb-2">
+                <button class="btn btn-sm btn-dark dropdown-toggle status-selector" type="button" data-bs-toggle="dropdown" ${!isAdmin ? 'disabled' : ''}>
+                  Cambiar Estado
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item change-status" data-id="${order.id}" data-status="Pendiente" href="javascript:void(0)">Pendiente</a></li>
+                  <li><a class="dropdown-item change-status" data-id="${order.id}" data-status="En Proceso" href="javascript:void(0)">En Proceso</a></li>
+                  <li><a class="dropdown-item change-status" data-id="${order.id}" data-status="Completada" href="javascript:void(0)">Completada</a></li>
+                </ul>
+              </div>
+              <p class="card-text text-truncate">${order.problemDescription}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">Cliente: ${order.customerName}</small>
+                <small class="text-muted">Vence: ${formatDate(order.dueDate)}</small>
+              </div>
+              <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-sm btn-outline-primary view-details" data-id="${order.id}">
+                  <i class="fas fa-eye me-1"></i>Ver Detalles
+                </button>
+                ${isAdmin ? `
+                <button class="btn btn-sm btn-outline-danger delete-order" data-id="${order.id}">
+                  <i class="fas fa-trash me-1"></i>Eliminar
+                </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+          
+          container.appendChild(card);
+        });
+        
+        // Asignar eventos a los botones después de crearlos
+        container.querySelectorAll('.view-details').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-id');
+            openOrderDetail(orderId);
+          });
+        });
+        
+        container.querySelectorAll('.change-status').forEach(link => {
+          link.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-id');
+            const newStatus = this.getAttribute('data-status');
+            changeOrderStatus(orderId, newStatus);
+          });
+        });
+        
+        // Add event listener for delete buttons
+        container.querySelectorAll('.delete-order').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-id');
+            deleteOrder(orderId);
+          });
+        });
+      }
+      
+      // Abrir detalle de orden
+      function openOrderDetail(orderId) {
+        currentOrderId = orderId;
+        const order = currentOrders.find(o => o.id === orderId);
+        
+        if (!order) return;
+        
+        orderDetailContent.innerHTML = `
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Información del Dispositivo</h6>
+              <p><strong>Tipo:</strong> ${order.deviceType}</p>
+              <p><strong>Problema:</strong> ${order.problemDescription}</p>
+              <p><strong>Estado:</strong> <span class="badge badge-${getStatusBadgeClass(order.status)}">${order.status}</span></p>
+              <p><strong>Fecha de Creación:</strong> ${formatDate(order.createdAt)}</p>
+              <p><strong>Fecha de Entrega:</strong> ${formatDate(order.dueDate)}</p>
+            </div>
+            <div class="col-md-6">
+              <h6>Información del Cliente</h6>
+              <p><strong>Nombre:</strong> ${order.customerName}</p>
+              <p><strong>Email:</strong> ${order.customerEmail}</p>
+              <p><strong>Teléfono:</strong> ${order.customerPhone}</p>
+            </div>
+          </div>
+          ${order.imageBase64 ? `
+          <div class="row mt-3">
+            <div class="col-12">
+              <h6>Imagen del Dispositivo</h6>
+              <img src="${order.imageBase64}" class="order-detail-image" alt="Imagen del dispositivo">
+            </div>
+          </div>
+          ` : ''}
+        `;
+        
+        orderDetailModal.show();
+      }
+      
+      // Cambiar estado de una orden
+      function changeOrderStatus(orderId, newStatus) {
+        if (!isAdmin) {
+          showToast('Solo administradores pueden cambiar el estado de las órdenes.');
+          return;
+        }
+        
+        const orderIndex = currentOrders.findIndex(o => o.id === orderId);
+        
+        if (orderIndex === -1) return;
+        
+        // Mostrar un efecto de loading en la tarjeta
+        const orderCard = document.querySelector(`.view-details[data-id="${orderId}"]`).closest('.card');
+        orderCard.classList.add('animated-bg');
+        
+        // Simular cambio de estado con una breve espera
+        setTimeout(() => {
+          currentOrders[orderIndex].status = newStatus;
+          saveOrders();
+          renderOrders();
+          
+          // Mostrar notificación de éxito
+          showToast(`Orden actualizada a estado: ${newStatus}`);
+        }, 800);
+      }
+      
+      // Eliminar una orden
+      function deleteOrder(orderId) {
+        if (!isAdmin) {
+          showToast('Solo administradores pueden eliminar órdenes.');
+          return;
+        }
+        
+        // Confirm before deleting
+        if (confirm('¿Está seguro que desea eliminar esta orden? Esta acción no se puede deshacer.')) {
+          const orderIndex = currentOrders.findIndex(o => o.id === orderId);
+          
+          if (orderIndex === -1) return;
+          
+          // Remove the order
+          currentOrders.splice(orderIndex, 1);
+          saveOrders();
+          renderOrders();
+          
+          // Show success notification
+          showToast('Orden eliminada exitosamente');
+        }
+      }
+      
+      // Mostrar una notificación toast
+      function showToast(message, isOrderCreated = false) {
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '5';
+        
+        toastContainer.innerHTML = `
+          <div id="liveToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+              <strong class="me-auto">TechNow</strong>
+              <small>Ahora</small>
+              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+              ${message}
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(toastContainer);
+        
+        // Show the drop notification if it's an order creation
+        if (isOrderCreated) {
+          const dropNotification = document.createElement('div');
+          dropNotification.className = 'notification-drop';
+          dropNotification.innerHTML = `
+            <i class="fas fa-check"></i>
+            <span>Listo</span>
+          `;
+          document.body.appendChild(dropNotification);
+          
+          setTimeout(() => {
+            dropNotification.remove();
+          }, 3000);
+        }
+        
+        setTimeout(() => {
+          toastContainer.remove();
+        }, 3000);
+      }
+      
+      // Obtener clase CSS para el badge según el estado
+      function getStatusBadgeClass(status) {
+        switch (status) {
+          case 'Pendiente': return 'pending';
+          case 'En Proceso': return 'in-progress';
+          case 'Completada': return 'completed';
+          default: return 'pending';
+        }
+      }
+      
+      // Formatear fecha para mostrar
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES');
+      }
+      
+      // Simulate sending email confirmation of the order
+      function simulateEmailSending(order) {
+        console.log('Simulating email sending for order:', order);
+        
+        // Enviar notificación a tizzianoh2@gmail.com
+        console.log('Notificando a tizzianoh2@gmail.com sobre nueva orden:', order.id);
+        
+        // Here you can simulate email sending, e.g. call a Loop or log details
+        showToast('Se ha enviado el correo de confirmación de la orden y notificado a tizzianoh2@gmail.com');
+      }
+      
+      // Event Listeners
+      newOrderBtn.addEventListener('click', function() {
+        newOrderForm.reset();
+        imagePreview.style.display = 'none';
+        currentImageBase64 = null;
+        newOrderModal.show();
+      });
+      
+      deviceImage.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            currentImageBase64 = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      submitOrderBtn.addEventListener('click', function() {
+        if (!newOrderForm.checkValidity()) {
+          newOrderForm.reportValidity();
+          return;
+        }
+        
+        // Mostrar spinner
+        submitSpinner.style.display = 'inline-block';
+        submitOrderBtn.disabled = true;
+        
+        // Simular envío
+        setTimeout(() => {
+          const newOrder = {
+            id: uuidv4(),
+            deviceType: document.getElementById('deviceType').value,
+            problemDescription: document.getElementById('problemDescription').value,
+            customerName: document.getElementById('customerName').value,
+            customerEmail: document.getElementById('customerEmail').value,
+            customerPhone: document.getElementById('customerPhone').value,
+            dueDate: document.getElementById('dueDate').value,
+            imageBase64: currentImageBase64,
+            status: 'Pendiente',
+            createdAt: new Date().toISOString()
+          };
+          
+          currentOrders.push(newOrder);
+          window.currentOrders = currentOrders; // Add this line
+          saveOrders();
+          renderOrders();
+          
+          // Ocultar spinner y modal
+          submitSpinner.style.display = 'none';
+          submitOrderBtn.disabled = false;
+          newOrderModal.hide();
+          
+          // Mostrar notificación con la animación de gota
+          showToast('Orden creada exitosamente', true);
+          
+          // Simular envío de correo electrónico
+          simulateEmailSending(newOrder);
+        }, 1000);
+      });
+      
+      notifyTeamBtn.addEventListener('click', function() {
+        notifySpinner.style.display = 'inline-block';
+        notifyTeamBtn.disabled = true;
+        
+        setTimeout(() => {
+          notifySpinner.style.display = 'none';
+          notifyTeamBtn.disabled = false;
+          showToast('Equipo notificado exitosamente');
+          
+          // Add message to team inbox
+          displayTeamMessage(currentOrderId);
+        }, 1500);
+      });
+      
+      sendReminderBtn.addEventListener('click', function() {
+        reminderSpinner.style.display = 'inline-block';
+        sendReminderBtn.disabled = true;
+        
+        setTimeout(() => {
+          reminderSpinner.style.display = 'none';
+          sendReminderBtn.disabled = false;
+          showToast('Recordatorio enviado al cliente');
+        }, 1500);
+      });
+      
+      // Set minimum date for due date input
+      const dueDateInput = document.getElementById('dueDate');
+      if (dueDateInput) {
+        // Set minimum date to today
+        const today = new Date();
+        const year = today.getFullYear();
+        let month = today.getMonth() + 1;
+        let day = today.getDate();
+        
+        // Format to YYYY-MM-DD
+        month = month < 10 ? '0' + month : month;
+        day = day < 10 ? '0' + day : day;
+        
+        dueDateInput.min = `${year}-${month}-${day}`;
+      }
+      
+      // Inicializar la aplicación
+      loadOrders();
+    });
+  </script>
+</body>
+<footer class="py-3 mt-4 text-center">
+  <p class="text-muted">@technow.tech</p>
+</footer>
+</html>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const darkModeBtn = document.getElementById('darkModeBtn');
+    
+    // Verificar si hay una preferencia guardada
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+      darkModeBtn.innerHTML = '<i class="fas fa-sun me-1"></i>Light Mode';
+    } else {
+      // Ensure navbar has light mode styles on initial load if not in dark mode
+      const navbar = document.querySelector('.navbar');
+      if (navbar) {
+        navbar.classList.remove('navbar-dark', 'bg-dark');
+        navbar.classList.add('navbar-light');
+      }
+    }
+    
+    darkModeBtn.addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      
+      // Update navbar appearance based on dark mode state
+      const navbar = document.querySelector('.navbar');
+      if (navbar) {
+        if (isDark) {
+          navbar.classList.remove('navbar-light');
+          navbar.classList.add('navbar-dark', 'bg-dark');
+          darkModeBtn.innerHTML = '<i class="fas fa-sun me-1"></i>Light Mode';
+        } else {
+          navbar.classList.remove('navbar-dark', 'bg-dark');
+          navbar.classList.add('navbar-light');
+          darkModeBtn.innerHTML = '<i class="fas fa-moon me-1"></i>Dark Mode';
+        }
+      } else {
+        // If navbar can't be found, still update the button text
+        if (isDark) {
+          darkModeBtn.innerHTML = '<i class="fas fa-sun me-1"></i>Light Mode';
+        } else {
+          darkModeBtn.innerHTML = '<i class="fas fa-moon me-1"></i>Dark Mode';
+        }
+      }
+    });
+  });
+</script>
+
+<script>
+  function displayTeamMessage(orderId) {
+    const order = window.currentOrders.find(o => o.id === orderId); // Use window.currentOrders instead
+    if (!order) return;
+    
+    const teamInbox = document.getElementById('teamInbox');
+    const inboxCount = document.getElementById('inbox-count');
+    
+    // Remove empty state if present
+    const emptyState = teamInbox.querySelector('.empty-state');
+    if (emptyState) {
+      teamInbox.innerHTML = '';
+    }
+    
+    // Create new message element
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message-card animate__animated animate__fadeIn';
+    
+    const currentTime = new Date();
+    const timeString = currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const dateString = currentTime.toLocaleDateString('es-ES');
+    
+    messageEl.innerHTML = `
+      <div class="message-header">
+        <strong>Orden #${order.id.substring(0, 8)}</strong>
+        <span class="message-time">${dateString} ${timeString}</span>
+      </div>
+      <p class="mb-1"><strong>Dispositivo:</strong> ${order.deviceType} - ${order.status}</p>
+      <p class="mb-1"><strong>Cliente:</strong> ${order.customerName}</p>
+      <p class="mb-0"><strong>Mensaje:</strong> Se requiere atención para esta orden.</p>
+    `;
+    
+    // Add message to the top of the inbox
+    teamInbox.insertBefore(messageEl, teamInbox.firstChild);
+    
+    // Update counter
+    const currentCount = parseInt(inboxCount.textContent || '0');
+    inboxCount.textContent = currentCount + 1;
+  }
+</script>
